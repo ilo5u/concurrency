@@ -1,5 +1,7 @@
 package ticketingsystem;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,7 +68,6 @@ public class TicketingDS implements TicketingSystem {
             // passenger gets a seller
 
             // inquiry amount of the rest tickets
-//            System.out.println("check [" + departure + "," + arrival + "]");
             return routes[route].count(hashTour(departure, arrival));
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -105,168 +106,6 @@ public class TicketingDS implements TicketingSystem {
     // | 1 || 1 |     | 1 | --> <D1 A2><D1 A3>< ... ><D7 A8> -> tourmax
     // --------------------
     // <R 1><R 2><...><R 4>
-    /*
-    public class RouteInfo {
-        public final int id;
-
-        public RouteInfo(int key) {
-            id = key;
-            // initial tour index table
-            initTours();
-        }
-
-        public class SeatInfo {
-            public SeatInfo() {
-//                vector = new AtomicBoolean[tourmax + 1];
-                vector = new boolean[tourmax + 1];
-//                for (int i = 1; i <= tourmax; ++i) {
-//                    vector[i] = new AtomicBoolean(false);
-//                }
-                lock = new ReentrantLock();
-            }
-            public boolean or(int tourid, int no, String name, boolean[] mask) {
-                lock.lock();
-                if (vector[tourid]) {
-                    lock.unlock();
-                    return false;
-                }
-                for (int i = 1; i <= tourmax; ++i) {
-//                    if (mask[i]) {
-//                        vector[i].set(true);
-//                    }
-                    vector[i] |= mask[i];
-                }
-                passengers[hashPass(tourid, no)] = name;
-                lock.unlock();
-                return true;
-            }
-            public void xor(int pass, boolean[] mask) {
-                lock.lock();
-                for (int i = 1; i <= tourmax; ++i) {
-//                    if (mask[i]) {
-//                        vector[i].set(false);
-//                    }
-                    vector[i] ^= mask[i];
-                }
-                passengers[pass] = null;
-                lock.unlock();
-            }
-
-            /// @key hashed index of which tour e.g. <1,2> = 1 <1,3> = 2
-            /// @expect new value of the indexed cell
-//            public boolean cas(int key, boolean expect) {
-//                return vector[key].compareAndSet(expect, !expect);
-//            }
-
-            // @key hased index of which tour e.g. <1,2> = 1 <1,3> = 2
-            public boolean bit(int key) {
-//                return vector[key].get();
-                return vector[key];
-            }
-
-            // each element referred to a cell
-            // true: sold
-            // false: empty
-//            AtomicBoolean[] vector = null;
-            boolean[] vector = null;
-            Lock lock = null;
-        }
-        SeatInfo[] tours = null;
-        boolean[][] table = null;
-        String[] passengers = null;
-        AtomicInteger[] rests = null;
-        AtomicInteger[] empty = null;
-
-      private void initTours() {
-            tours = new SeatInfo[nomax + 1];
-            for (int i = 1; i <= nomax; ++i) {
-                tours[i] = new SeatInfo();
-            }
-            table = new boolean[tourmax + 1][tourmax + 1];
-            passengers = new String[tourmax * nomax + 1];
-            // initial index table
-            for (int dep = 1; dep <= stationmax; ++dep) {
-                for (int arr = dep + 1; arr <= stationmax; ++arr) {
-                    int key = hashTour(dep, arr);
-//                    System.out.println("[" + dep + "," + arr + "]: " + key);
-                    boolean[] value = new boolean[tourmax + 1];
-                    for (int i = 1; i <= tourmax; ++i) {
-                        value[i] = true;
-                    }
-                    // release left part
-                    for (int i = 1; i < dep; ++i) {
-                        for (int j = i + 1; j <= dep; ++j) {
-                            value[hashTour(i, j)] = false;
-                        }
-                    }
-                    // release right part
-                    for (int i = arr; i <= stationmax; ++i) {
-                        for (int j = i + 1; j <= stationmax; ++j) {
-                            value[hashTour(i, j)] = false;
-                        }
-                    }
-                    table[key] = value;
-                }
-            }
-            rests = new AtomicInteger[tourmax + 1];
-            for (int i = 1; i <= tourmax; ++i) {
-                rests[i] = new AtomicInteger(nomax);
-            }
-            empty = new AtomicInteger[tourmax + 1];
-            for (int i = 1; i <= tourmax; ++i) {
-                empty[i] = new AtomicInteger(1);
-            }
-        }
-
-        public int acquire(int tourid, String name) {
-            Random random = new Random();
-            retry: while (true) {
-                int no = random.nextInt(nomax) + 1;
-                int cnt = 1;
-                // find the first empty seat's no
-                while (cnt <= nomax && tours[no].bit(tourid)) {
-                    // bit() method is lock-free
-                    // may more than one thread hold the same seat
-                    no = no % nomax + 1;
-                    ++cnt;
-                }
-                if (cnt <= nomax) {
-                    if (!tours[no].or(tourid, no, name, table[tourid])) {
-                        System.out.println(no);
-                        continue retry;
-                    }
-                     // atomic for each row(seat)
-//                System.out.println(name + " buy success");
-                    return no;
-                } else {
-                    return -1;
-                }
-            }
-        }
-
-        public boolean release(int tourid, int no, String name) {
-            final int hash = hashPass(tourid, no);
-            if (!tours[no].bit(tourid)
-                    || passengers[hash] == null || !passengers[hash].equals(name)) {
-                return false;
-            } else {
-                tours[no].xor(hash, table[tourid]);
-                return true;
-            }
-        }
-
-        public int count(int tourid) {
-//            System.out.println("check [" + getDeparture(tourid) + "," + getArrival(tourid) + "]");
-            int cnt = 0;
-            for (int no = 1; no <= nomax; ++no) {
-                if (!tours[no].bit(tourid)) {
-                    ++cnt;
-                }
-            }
-            return cnt;
-        }
-    }
-    */
     public class RouteInfo {
         public final int id;
 
@@ -287,17 +126,13 @@ public class TicketingDS implements TicketingSystem {
                     lock.unlock();
                     return false;
                 }
-//                System.out.print("Sold out: " + name);
+
                 for (int tour : mask) {
                     if (vector[tour] == 0) {
                         rests[tour].decrementAndGet();
                     }
                     ++vector[tour];
                 }
-//                for (int i = 1; i <= tourmax; ++i) {
-//                    System.out.print(" " + rests[i].get() + " ");
-//                }
-//                System.out.println();
 
                 passengers[hashPass(tourid, no)] = name;
                 lock.unlock();
@@ -309,6 +144,7 @@ public class TicketingDS implements TicketingSystem {
                     --vector[tour];
                     if (vector[tour] == 0) {
                         rests[tour].incrementAndGet();
+                        empty[tour].set(no);
                     }
                 }
                 passengers[pass] = null;

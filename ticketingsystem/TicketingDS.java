@@ -157,7 +157,7 @@ public class TicketingDS implements TicketingSystem {
             // each element referred to a cell
             // true: sold
             // false: empty
-            int[] vector = null;
+            volatile int[] vector = null;
             Lock lock = null;
         }
         // dynamic records

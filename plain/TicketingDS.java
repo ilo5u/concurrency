@@ -1,7 +1,6 @@
 package plain;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -13,7 +12,9 @@ public class TicketingDS implements TicketingSystem {
     private final int coachmax;
     private final int seatmax;
     private final int stationmax;
-    private final Semaphore sellers;
+
+    private final int maxCoachAndSeat;
+    private final int maxTourAndNo;
 
     private final int tourmax;
     private final int nomax;
@@ -23,12 +24,14 @@ public class TicketingDS implements TicketingSystem {
         coachmax = coachnum;
         seatmax = seatnum;
         stationmax = stationnum;
-        sellers = new Semaphore(threadnum);
+
+        maxCoachAndSeat = Math.max(coachmax, seatmax);
 
         /// how many tours in total (only single direction)
         tourmax = (stationmax * (stationmax - 1)) >> 1;
         // how many No. in total
-        nomax = (coachmax - 1) * Math.max(coachmax, seatmax) + seatmax;
+        nomax = (coachmax - 1) * maxCoachAndSeat + seatmax;
+        maxTourAndNo = Math.max(tourmax, nomax);
 
         initRoutes();
     }
@@ -43,121 +46,35 @@ public class TicketingDS implements TicketingSystem {
     }
 
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
-        try {
-            sellers.acquire(); // passenger attempts to acquire an ticket window
-            // passenger gets a seller
-
-            // buy one ticket
-            NoAndTicket res = routes[route].acquire(route, hashTour(departure, arrival), passenger);
-            if (res == null) {
-                return null;
-            } else {
-                Ticket ticket = new Ticket();
-                ticket.tid = res.ticket;
-                ticket.passenger = passenger;
-                ticket.route = route;
-                ticket.coach = getCoach(res.no);
-                ticket.seat = getSeat(res.no);
-                ticket.departure = departure;
-                ticket.arrival = arrival;
-                return ticket;
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            sellers.release(); // passenger leaves ticket window
+        // buy one ticket
+        NoAndTicket res = routes[route].acquire(hashTour(departure, arrival), passenger);
+        if (res == null) {
+            return null;
+        } else {
+            Ticket ticket = new Ticket();
+            ticket.tid = res.ticket;
+            ticket.passenger = passenger;
+            ticket.route = route;
+            ticket.coach = getCoach(res.no);
+            ticket.seat = getSeat(res.no);
+            ticket.departure = departure;
+            ticket.arrival = arrival;
+            return ticket;
         }
-        return null;
     }
 
     public int inquiry(int route, int departure, int arrival) {
-        try {
-            sellers.acquire(); // passenger attempts to acquire an ticket window
-            // passenger gets a seller
-
-            // inquiry amount of the rest tickets
-            return routes[route].count(route, hashTour(departure, arrival));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            sellers.release(); // passenger leaves ticket window
-        }
-        return 0;
+        // inquiry amount of the rest tickets
+        return routes[route].count(hashTour(departure, arrival));
     }
 
     public boolean refundTicket(Ticket ticket) {
-        try {
-            sellers.acquire(); // passenger attempts to acquire an ticket window
-            // passenger gets a seller
-
-            // refund one ticket
-            return routes[ticket.route].release(
-                    ticket.tid,
-                    ticket.route,
-                    hashTour(ticket.departure, ticket.arrival),
-                    hashNo(ticket.coach, ticket.seat),
-                    ticket.passenger);
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            sellers.release(); // passenger leaves ticket window
-        }
-        return false;
-    }
-
-    /**
-     * only for linearizability verification
-     * @param ticket wanted ticket info
-     * @return not null when this bought is legal
-     */
-    public Ticket buy(Ticket ticket) {
-        RouteInfo route = routes[ticket.route];
-        int no = hashNo(ticket.coach, ticket.seat);
-        int tour = hashTour(ticket.departure, ticket.arrival);
-        int pass = hashPass(tour, no);
-
-        if (route.rests[tour].get() == 0) return null;
-        if (route.tours[no].vector[tour] > 0) return null;
-        if (route.passengers[pass] != null) return null;
-
-        for (int t : route.collison[tour]) {
-            if (route.tours[no].vector[t] == 0) {
-                route.rests[t].decrementAndGet();
-            }
-            ++route.tours[no].vector[t];
-        }
-
-        route.passengers[pass] = new TidAndPassenger(ticket.tid, ticket.passenger);
-        return ticket;
-    }
-
-    /**
-     * only for linearizability verification
-     * @param ticket wanted ticket info
-     * @return true when this refund is legal
-     */
-    public boolean refund(Ticket ticket) {
-        RouteInfo route = routes[ticket.route];
-        int no = hashNo(ticket.coach, ticket.seat);
-        int tour = hashTour(ticket.departure, ticket.arrival);
-        int pass = hashPass(tour, no);
-
-        if (route.tours[no].vector[tour] == 0) return false;
-        if (route.passengers[pass] == null) return false;
-        if (route.passengers[pass].tid != ticket.tid) return false;
-        if (!Objects.equals(route.passengers[pass].name, ticket.passenger)) return false;
-
-        for (int t : route.collison[tour]) {
-            --route.tours[no].vector[t];
-            if (route.tours[no].vector[t] == 0) {
-                route.rests[t].incrementAndGet();
-                route.empty[t].set(no);
-            }
-        }
-
-        route.passengers[pass] = null;
-        return true;
+        // refund one ticket
+        return routes[ticket.route].release(
+                ticket.tid,
+                hashTour(ticket.departure, ticket.arrival),
+                hashNo(ticket.coach, ticket.seat),
+                ticket.passenger);
     }
 
     public static class TidAndPassenger {
@@ -180,11 +97,7 @@ public class TicketingDS implements TicketingSystem {
     // --------------------
     // <R 1><R 2><...><R 4>
     public class RouteInfo {
-        private final int id;
-        private Map<Integer, Integer> unmapping;
-
-        public RouteInfo(int key) {
-            id = key;
+        public RouteInfo() {
             // initial tour index table
             initTours();
         }
@@ -197,17 +110,13 @@ public class TicketingDS implements TicketingSystem {
 
             /**
              * try to buy one ticket (mark the relative cell)
-             * @param route wanted by passenger 'name'
              * @param tourid hashed code of this tour's departure and arrival
              * @param no numero of wanted seat
              * @param name passenger's name
              * @param mask other seats relative with this seats would also be marked
              * @return bought ticket if not null
              */
-            public NoAndTicket or(int route, int tourid, int no, String name, Set<Integer> mask) {
-                // hash current tour with wanted seat to record passenger and tid
-                int hash = hashPass(tourid, no);
-
+            public NoAndTicket or(int tourid, int no, String name, Set<Integer> mask) {
                 // atomic buy method
                 lock.lock(); // locked only at seat
                 if (vector[tourid] > 0) {
@@ -228,7 +137,7 @@ public class TicketingDS implements TicketingSystem {
                 long ticket = tid.incrementAndGet();
 
                 // record passenger and tid at current seat
-                passengers[hash] = new TidAndPassenger(ticket, name);
+                passengers[hashPass(tourid, no)] = new TidAndPassenger(ticket, name);
 
                 lock.unlock(); // linearizable position for each succeed ticket bought
                 return new NoAndTicket(no, ticket);
@@ -237,15 +146,13 @@ public class TicketingDS implements TicketingSystem {
             /**
              * refund bought ticket
              * @param ticket
-             * @param route
              * @param pass
-             * @param tourid
              * @param no
              * @param name
              * @param mask
              * @return true for bought ticket, otherwise false
              */
-            public boolean xor(long ticket, int route, int pass, int tourid, int no, String name, Set<Integer> mask) {
+            public boolean xor(long ticket, int pass, int no, String name, Set<Integer> mask) {
                 lock.lock();
                 // ticket info dose not match
                 if (passengers[pass] == null) {
@@ -298,7 +205,7 @@ public class TicketingDS implements TicketingSystem {
             for (int i = 1; i <= nomax; ++i) {
                 tours[i] = new SeatInfo();
             }
-            passengers = new TidAndPassenger[tourmax * Math.max(tourmax, nomax) + 1];
+            passengers = new TidAndPassenger[tourmax * maxTourAndNo + 1];
 
             collison = new Set[tourmax + 1];
             for (int i = 1; i <= tourmax; ++i) {
@@ -307,12 +214,10 @@ public class TicketingDS implements TicketingSystem {
                     collison[i].add(j);
                 }
             }
-            unmapping = new HashMap<>();
             // initialize collision table
             for (int dep = 1; dep <= stationmax; ++dep) {
                 for (int arr = dep + 1; arr <= stationmax; ++arr) {
                     int key = hashTour(dep, arr);
-                    unmapping.put(key, dep << 16 | arr);
                     // release left part
                     for (int i = 1; i < dep; ++i) {
                         for (int j = i + 1; j <= dep; ++j) {
@@ -338,14 +243,14 @@ public class TicketingDS implements TicketingSystem {
             }
         }
 
-        public NoAndTicket acquire(int route, int tourid, String name) {
+        public NoAndTicket acquire(int tourid, String name) {
             retry: while (true) {
                 if (rests[tourid].get() == 0) {
                     return null;
                 }
                 int no = empty[tourid].get(); // get the possible empty seat no
                 int next = no % nomax + 1;
-                NoAndTicket res = tours[no].or(route, tourid, no, name, collison[tourid]);
+                NoAndTicket res = tours[no].or(tourid, no, name, collison[tourid]);
                 if (res != null) {
                     empty[tourid].compareAndSet(no, next); // update it if no refund
                     // still empty
@@ -355,7 +260,7 @@ public class TicketingDS implements TicketingSystem {
                     while (rests[tourid].get() > 0) {
                         // test the next seat
                         if (tours[next].empty(tourid)) {
-                            res = tours[next].or(route, tourid, next, name, collison[tourid]);
+                            res = tours[next].or(tourid, next, name, collison[tourid]);
                             if (res != null) {
                                 empty[tourid].compareAndSet(no, next); // update it if no refund
                                 return res;
@@ -371,11 +276,11 @@ public class TicketingDS implements TicketingSystem {
             }
         }
 
-        public boolean release(long ticket, int route, int tourid, int no, String name) {
-            return tours[no].xor(ticket, route, hashPass(tourid, no), tourid, no, name, collison[tourid]);
+        public boolean release(long ticket, int tourid, int no, String name) {
+            return tours[no].xor(ticket, hashPass(tourid, no), no, name, collison[tourid]);
         }
 
-        public int count(int route, int tourid) {
+        public int count(int tourid) {
             return rests[tourid].get();
         }
     }
@@ -384,7 +289,7 @@ public class TicketingDS implements TicketingSystem {
     private void initRoutes() {
         routes = new RouteInfo[routemax + 1];
         for (int i = 1; i <= routemax; ++i) {
-            routes[i] = new RouteInfo(i);
+            routes[i] = new RouteInfo();
         }
     }
 
@@ -393,15 +298,15 @@ public class TicketingDS implements TicketingSystem {
     }
 
     private int hashNo(int coach, int seat) {
-        return (coach - 1) * Math.max(coachmax, seatmax) + seat;
+        return (coach - 1) * maxCoachAndSeat + seat;
     }
 
     private int hashPass(int tour, int sel) {
-        return (tour - 1) * Math.max(nomax, tourmax) + sel;
+        return (tour - 1) * maxTourAndNo + sel;
     }
 
     private int getCoach(int no) {
-        int base = Math.max(coachmax, seatmax);
+        int base = maxCoachAndSeat;
         if (no % base == 0) {
             return no / base;
         } else {
@@ -410,7 +315,7 @@ public class TicketingDS implements TicketingSystem {
     }
 
     private int getSeat(int no) {
-        int seat = no % Math.max(coachmax, seatmax);
+        int seat = no % maxCoachAndSeat;
         if (seat == 0) {
             return seatmax;
         } else {

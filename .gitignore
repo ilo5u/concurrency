@@ -1,2 +1,5 @@
 *.class
 /dump
+/static
+/verify
+/out

@@ -1,12 +1,9 @@
-ENABLE_VERIFICATION=false
-ENABLE_STATISTICS=false
+repeat=11
 
-//repeat=10
-repeat=7
-
-testnum=10000 threadnum=1 routenum=5 coachnum=8 seatnum=100 stationnum=10
-testnum=10000 threadnum=4 routenum=5 coachnum=8 seatnum=100 stationnum=10
-testnum=10000 threadnum=8 routenum=5 coachnum=8 seatnum=100 stationnum=10
-testnum=10000 threadnum=16 routenum=5 coachnum=8 seatnum=100 stationnum=10
-testnum=10000 threadnum=32 routenum=5 coachnum=8 seatnum=100 stationnum=10
-testnum=10000 threadnum=64 routenum=5 coachnum=8 seatnum=100 stationnum=10
+testnum=1280000 threadnum=1 routenum=20 coachnum=10 seatnum=100 stationnum=16
+testnum=1280000 threadnum=4 routenum=20 coachnum=10 seatnum=100 stationnum=16
+testnum=1280000 threadnum=8 routenum=20 coachnum=10 seatnum=100 stationnum=16
+testnum=1280000 threadnum=16 routenum=20 coachnum=10 seatnum=100 stationnum=16
+testnum=1280000 threadnum=32 routenum=20 coachnum=10 seatnum=100 stationnum=16
+testnum=1280000 threadnum=64 routenum=20 coachnum=10 seatnum=100 stationnum=16
+testnum=1280000 threadnum=128 routenum=20 coachnum=10 seatnum=100 stationnum=16

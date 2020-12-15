@@ -3,3 +3,6 @@
 /static
 /verify
 /out
+*.iml
+*.pdf
+.*

@@ -1,10 +1,8 @@
 package ticketingsystem;
 
 import java.util.*;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
-/*
 class ThreadId {
     // Atomic integer containing the next thread ID to be assigned
     private static final AtomicInteger nextId = new AtomicInteger(0);
@@ -22,7 +20,7 @@ class ThreadId {
         return threadId.get();
     }
 }
-//*/
+
 public class Trace {
 	final static int threadnum = 4;
 	final static int routenum = 3; // route is designed from 1 to 3

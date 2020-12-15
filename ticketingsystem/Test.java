@@ -4,8 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-//*
-class ThreadId {
+class MyThreadId {
 	// Atomic integer containing the next thread ID to be assigned
 	private static AtomicInteger nextId = new AtomicInteger(0);
 
@@ -25,7 +24,6 @@ class ThreadId {
 	// Reset the thread counter as 0
 	public static void reset() { nextId = new AtomicInteger(0); }
 }
-//*/
 
 class Record {
 	public final long preTime;
@@ -573,7 +571,7 @@ class Task implements Runnable {
 						if (Debugger.NeedDbg) {
 							long postTime = System.nanoTime() - startTime;
 							String info = preTime + " " + postTime + " " +
-									ThreadId.get() + " " +
+									MyThreadId.get() + " " +
 									"TicketRefund" + " " +
 									ticket.tid + " " +
 									ticket.passenger + " " +
@@ -587,7 +585,7 @@ class Task implements Runnable {
 					} else {
 						if (Debugger.NeedDbg) {
 							String info = preTime + " " + (System.nanoTime() - startTime) + " " +
-									ThreadId.get() + " " +
+									MyThreadId.get() + " " +
 									"ErrOfRefund";
 							dbg.add(info);
 						}
@@ -596,7 +594,7 @@ class Task implements Runnable {
 					long preTime = System.nanoTime() - startTime;
 					if (Debugger.NeedDbg) {
 						String info = preTime + " " + (System.nanoTime() - startTime) + " " +
-								ThreadId.get() + " " +
+								MyThreadId.get() + " " +
 								"ErrOfRefund";
 						dbg.add(info);
 					}
@@ -612,7 +610,7 @@ class Task implements Runnable {
 					if (Debugger.NeedDbg) {
 						long postTime = System.nanoTime() - startTime;
 						String info = preTime + " " + postTime + " " +
-								ThreadId.get() + " " +
+								MyThreadId.get() + " " +
 								"TicketBought" + " " +
 								ticket.tid + " " +
 								ticket.passenger + " " +
@@ -627,7 +625,7 @@ class Task implements Runnable {
 				} else {
 					if (Debugger.NeedDbg) {
 						String info = preTime + " " + (System.nanoTime() - startTime) + " " +
-								ThreadId.get() + " " +
+								MyThreadId.get() + " " +
 								"TicketSoldOut" + " " +
 								route + " " +
 								departure+ " " +
@@ -645,7 +643,7 @@ class Task implements Runnable {
 				if (Debugger.NeedDbg) {
 					long postTime = System.nanoTime() - startTime;
 					String info = preTime + " " + postTime + " " +
-							ThreadId.get() + " " +
+							MyThreadId.get() + " " +
 							"RemainTicket" + " " +
 							leftTicket + " " +
 							route+ " " +
@@ -748,7 +746,7 @@ public class Test {
 		for (int c = 0; c < casenum; ++c) {
 			costs.add(new ArrayList<>());
 			for (int r = 0; r < repeat; ++r) {
-				ThreadId.reset(); // set the thread id counting from 0
+				MyThreadId.reset(); // set the thread id counting from 0
 
 				Thread[] threads = new Thread[threadnums.get(c)];
 				TicketingDS tds = new TicketingDS(

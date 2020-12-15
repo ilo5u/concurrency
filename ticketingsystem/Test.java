@@ -806,6 +806,7 @@ public class Test {
 			if (Debugger.EnablePerformanceTest) {
 				System.out.println("statistics for"
 						+ " testnum=" + testnums.get(c)
+						+ " eachnum = " + testnums.get(c) / threadnums.get(c)
 						+ " threadnum=" + threadnums.get(c)
 						+ " routenum=" + routenums.get(c)
 						+ " coachnum=" + coachnums.get(c)

@@ -1,0 +1,322 @@
+package ticketingsystem.verify;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * special TicketingDS used for linearizability verification
+ */
+public class LinearizableTicketingDS {
+    private long tid;
+    private final int routemax;
+    private final int coachmax;
+    private final int seatmax;
+    private final int stationmax;
+
+    private final int maxCoachAndSeat;
+    private final int maxTourAndNo;
+
+    private final int tourmax;
+    private final int nomax;
+    public LinearizableTicketingDS(int routenum, int coachnum, int seatnum, int stationnum) {
+        tid = 0;
+        routemax = routenum;
+        coachmax = coachnum;
+        seatmax = seatnum;
+        stationmax = stationnum;
+
+        maxCoachAndSeat = Math.max(coachmax, seatmax);
+
+        /// how many tours in total (only single direction)
+        tourmax = (stationmax * (stationmax - 1)) >> 1;
+        // how many No. in total
+        nomax = (coachmax - 1) * maxCoachAndSeat + seatmax;
+        maxTourAndNo = Math.max(tourmax, nomax);
+
+        initRoutes();
+    }
+
+    static private class NoAndTicket {
+        public int no;
+        public long ticket;
+        public NoAndTicket(int no, long ticket) {
+            this.no = no;
+            this.ticket = ticket;
+        }
+    }
+
+    public static class TidAndPassenger {
+        public long tid;
+        public String name;
+        public TidAndPassenger(long tid, String name) {
+            this.tid = tid;
+            this.name = name;
+        }
+    }
+
+    // nomax
+    // ^
+    // |-------------------
+    // | 8 || 8 |     | 8 |
+    // |---||---|     |---|
+    // |...||...|     |...|
+    // |---||---|     |---|
+    // | 1 || 1 |     | 1 | --> <D1 A2><D1 A3>< ... ><D7 A8> -> tourmax
+    // --------------------
+    // <R 1><R 2><...><R 4>
+    public class RouteInfo {
+        public RouteInfo() {
+            // initial tour index table
+            initTours();
+        }
+
+        public class SeatInfo {
+            public SeatInfo() {
+                vector = new short[tourmax + 1];
+            }
+
+            /**
+             * try to buy one ticket (mark the relative cell)
+             * @param tourid hashed code of this tour's departure and arrival
+             * @param no numero of wanted seat
+             * @param name passenger's name
+             * @param mask other seats relative with this seats would also be marked
+             * @return bought ticket if not null
+             */
+            public NoAndTicket or(int tourid, int no, String name, Set<Integer> mask) {
+                // atomic buy method
+                if (vector[tourid] > 0) {
+                    // some thread competes with current thread successfully
+                    // this thread would go back and try again
+                    return null;
+                }
+                // current thread has hold this seat successfully
+                for (int tour : mask) {
+                    // mark all seats in the collision filed
+                    if (vector[tour] == 0) {
+                        rests[tour]--;
+                    }
+                    ++vector[tour];
+                }
+                // fetch the unique tid
+                long ticket = ++tid;
+
+                // record passenger and tid at current seat
+                passengers[hashPass(tourid, no)] = new TidAndPassenger(ticket, name);
+
+                return new NoAndTicket(no, ticket);
+            }
+
+            /**
+             * refund bought ticket
+             * @param ticket
+             * @param pass
+             * @param no
+             * @param name
+             * @param mask
+             * @return true for bought ticket, otherwise false
+             */
+            public boolean xor(long ticket, int pass, int no, String name, Set<Integer> mask) {
+                // ticket info dose not match
+                if (passengers[pass] == null) {
+                    return false;
+                }
+                if (passengers[pass].tid != ticket || !Objects.equals(passengers[pass].name, name)) {
+                    return false;
+                }
+
+                for (int tour : mask) {
+                    --vector[tour];
+                    if (vector[tour] == 0) {
+                        rests[tour]++;
+                        empty[tour] = no;
+                    }
+                }
+                passengers[pass] = null;
+
+                return true;
+            }
+
+            // @key hashed index of which tour e.g. <1,2> = 1 <1,3> = 2
+            public boolean empty(int key) {
+                return vector[key] == 0;
+            }
+
+            // each element referred to a cell
+            // true: sold
+            // false: empty
+            private volatile short[] vector = null;
+        }
+        // dynamic records
+        private SeatInfo[] tours = null;
+        private TidAndPassenger[] passengers = null;
+
+        // initialize only once
+        // speed up the masking
+        private Set<Integer>[] collison = null;
+
+        // speed up the inquiry
+        private int[] rests = null;
+        private int[] empty = null;
+
+        private void initTours() {
+            tours = new SeatInfo[nomax + 1];
+            for (int i = 1; i <= nomax; ++i) {
+                tours[i] = new SeatInfo();
+            }
+            passengers = new TidAndPassenger[tourmax * maxTourAndNo + 1];
+
+            collison = new Set[tourmax + 1];
+            for (int i = 1; i <= tourmax; ++i) {
+                collison[i] = new HashSet<>();
+                for (int j = 1; j <= tourmax; ++j) {
+                    collison[i].add(j);
+                }
+            }
+            // initialize collision table
+            for (int dep = 1; dep <= stationmax; ++dep) {
+                for (int arr = dep + 1; arr <= stationmax; ++arr) {
+                    int key = hashTour(dep, arr);
+                    // release left part
+                    for (int i = 1; i < dep; ++i) {
+                        for (int j = i + 1; j <= dep; ++j) {
+                            collison[key].remove(hashTour(i, j));
+                        }
+                    }
+                    // release right part
+                    for (int i = arr; i <= stationmax; ++i) {
+                        for (int j = i + 1; j <= stationmax; ++j) {
+                            collison[key].remove(hashTour(i, j));
+                        }
+                    }
+                }
+            }
+
+            rests = new int[tourmax + 1];
+            for (int i = 1; i <= tourmax; ++i) {
+                rests[i] = nomax;
+            }
+            empty = new int[tourmax + 1];
+            for (int i = 1; i <= tourmax; ++i) {
+                empty[i] = 1;
+            }
+        }
+
+        public NoAndTicket acquire(int tourid, String name) {
+            retry: while (true) {
+                if (rests[tourid] == 0) {
+                    return null;
+                }
+                int no = empty[tourid]; // get the possible empty seat no
+                int next = no % nomax + 1;
+                NoAndTicket res = tours[no].or(tourid, no, name, collison[tourid]);
+                if (res != null) {
+                    empty[tourid] = next; // update it if no refund
+                    // still empty
+                    return res;
+                } else {
+                    // sold out
+                    while (rests[tourid] > 0) {
+                        // test the next seat
+                        if (tours[next].empty(tourid)) {
+                            res = tours[next].or(tourid, next, name, collison[tourid]);
+                            if (res != null) {
+                                empty[tourid] = next; // update it if no refund
+                                return res;
+                            }
+                        }
+                        if (empty[tourid] != no) {
+                            continue retry; // try to get the refunded seat
+                        }
+                        next = next % nomax + 1;
+                    }
+                    return null;
+                }
+            }
+        }
+
+        public int count(int tourid) {
+            return rests[tourid];
+        }
+    }
+    private RouteInfo[] routes = null;
+
+    private void initRoutes() {
+        routes = new RouteInfo[routemax + 1];
+        for (int i = 1; i <= routemax; ++i) {
+            routes[i] = new RouteInfo();
+        }
+    }
+
+    private int hashTour(int departure, int arrival) {
+        return ((((stationmax << 1) - departure) * (departure - 1)) >> 1) + arrival - departure;
+    }
+
+    private int hashNo(int coach, int seat) {
+        return (coach - 1) * maxCoachAndSeat + seat;
+    }
+
+    private int hashPass(int tour, int sel) {
+        return (tour - 1) * maxTourAndNo + sel;
+    }
+
+    /**
+     * only for linearizability verification
+     * @param ticket wanted ticket info
+     * @return not null when this bought is legal
+     */
+    public Ticket buy(Ticket ticket) {
+        RouteInfo route = routes[ticket.route];
+        int no = hashNo(ticket.coach, ticket.seat);
+        int tour = hashTour(ticket.departure, ticket.arrival);
+        int pass = hashPass(tour, no);
+
+        if (route.rests[tour] == 0) return null;
+        if (route.tours[no].vector[tour] > 0) return null;
+        if (route.passengers[pass] != null) return null;
+
+        for (int t : route.collison[tour]) {
+            if (route.tours[no].vector[t] == 0) {
+                route.rests[t]--;
+            }
+            ++route.tours[no].vector[t];
+        }
+
+        route.passengers[pass] = new TidAndPassenger(ticket.tid, ticket.passenger);
+        return ticket;
+    }
+
+    /**
+     * only for linearizability verification
+     * @param ticket wanted ticket info
+     * @return true when this refund is legal
+     */
+    public boolean refund(Ticket ticket) {
+        RouteInfo route = routes[ticket.route];
+        int no = hashNo(ticket.coach, ticket.seat);
+        int tour = hashTour(ticket.departure, ticket.arrival);
+        int pass = hashPass(tour, no);
+
+        if (route.tours[no].vector[tour] == 0) return false;
+        if (route.passengers[pass] == null) return false;
+        if (route.passengers[pass].tid != ticket.tid) return false;
+        if (!Objects.equals(route.passengers[pass].name, ticket.passenger)) return false;
+
+        for (int t : route.collison[tour]) {
+            --route.tours[no].vector[t];
+            if (route.tours[no].vector[t] == 0) {
+                route.rests[t]++;
+                route.empty[t] = no;
+            }
+        }
+
+        route.passengers[pass] = null;
+        return true;
+    }
+
+    public int inquiry(int route, int departure, int arrival) {
+        // inquiry amount of the rest tickets
+        return routes[route].count(hashTour(departure, arrival));
+    }
+}

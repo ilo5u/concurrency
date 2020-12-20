@@ -1,9 +1,0 @@
-repeat=11
-
-testnum=1280000 threadnum=1 routenum=20 coachnum=10 seatnum=100 stationnum=16
-testnum=1280000 threadnum=4 routenum=20 coachnum=10 seatnum=100 stationnum=16
-testnum=1280000 threadnum=8 routenum=20 coachnum=10 seatnum=100 stationnum=16
-testnum=1280000 threadnum=16 routenum=20 coachnum=10 seatnum=100 stationnum=16
-testnum=1280000 threadnum=32 routenum=20 coachnum=10 seatnum=100 stationnum=16
-testnum=1280000 threadnum=64 routenum=20 coachnum=10 seatnum=100 stationnum=16
-testnum=1280000 threadnum=128 routenum=20 coachnum=10 seatnum=100 stationnum=16

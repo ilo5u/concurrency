@@ -1,5 +1,6 @@
 *.class
-/dump
+/META-INF
+dump
 /static
 /out
 *.iml

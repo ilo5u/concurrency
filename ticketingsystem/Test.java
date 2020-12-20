@@ -1,7 +1,12 @@
 package ticketingsystem;
 
+import ticketingsystem.verify.Execution;
+import ticketingsystem.verify.Verifier;
+import ticketingsystem.verify.VerifyTask;
+
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class MyThreadId {
@@ -25,234 +30,23 @@ class MyThreadId {
 	public static void reset() { nextId = new AtomicInteger(0); }
 }
 
-class Record {
-	public final long preTime;
-	public final long postTime;
-	public enum Opcode { NULL, BUY, REFUND, INQUIRY, SOLD, ERROR };
-	public final Opcode opcode;
-	public final int threadId;
-	public final long ticketId;
-	public final String name;
-	public final int route;
-	public final int coach;
-	public final int seat;
-	public final int departure;
-	public final int arrival;
-	public final int left;
-
-	static public Opcode parse(String trace) {
-		if (trace.contains("TicketBought")) {
-			return Opcode.BUY;
-		} else if (trace.contains("TicketRefund")) {
-			return Opcode.REFUND;
-		} else if (trace.contains("TicketSoldOut")) {
-			return Opcode.SOLD;
-		} else if (trace.contains("ErrorOfRefund")) {
-			return Opcode.ERROR;
-		} else if (trace.contains("RemainTicket")) {
-			return Opcode.INQUIRY;
-		} else {
-			return Opcode.NULL;
-		}
-	}
-
-	public Record(long preTime, long postTime, Opcode opcode, int threadId) {
-		this.preTime = preTime;
-		this.postTime = postTime;
-		this.opcode = opcode;
-		this.threadId = threadId;
-		this.ticketId = -1;
-		this.name = null;
-		this.route = -1;
-		this.coach = -1;
-		this.seat = -1;
-		this.departure = -1;
-		this.arrival = -1;
-		this.left = -1;
-	}
-
-	public Record(long preTime, long postTime, Opcode opcode, int threadId, long ticketId, String name, int route, int coach, int seat, int departure, int arrival) {
-		this.preTime = preTime;
-		this.postTime = postTime;
-		this.opcode = opcode;
-		this.threadId = threadId;
-		this.ticketId = ticketId;
-		this.name = name;
-		this.route = route;
-		this.coach = coach;
-		this.seat = seat;
-		this.departure = departure;
-		this.arrival = arrival;
-		this.left = -1;
-	}
-
-	public Record(long preTime, long postTime, Opcode opcode, int threadId, int route, int departure, int arrival) {
-		this.preTime = preTime;
-		this.postTime = postTime;
-		this.opcode = opcode;
-		this.threadId = threadId;
-		this.ticketId = -1;
-		this.name = null;
-		this.route = route;
-		this.coach = -1;
-		this.seat = -1;
-		this.departure = departure;
-		this.arrival = arrival;
-		this.left = -1;
-	}
-
-	public Record(long preTime, long postTime, Opcode opcode, int threadId, int route, int departure, int arrival, int left) {
-		this.preTime = preTime;
-		this.postTime = postTime;
-		this.opcode = opcode;
-		this.threadId = threadId;
-		this.ticketId = -1;
-		this.name = null;
-		this.route = route;
-		this.coach = -1;
-		this.seat = -1;
-		this.departure = departure;
-		this.arrival = arrival;
-		this.left = left;
-	}
-
-	static public Record build(String trace) {
-		String[] sub = trace.split(" ");
-		Opcode op = parse(trace);
-		switch (op) {
-			case BUY:
-			case REFUND: return new Record(
-					Long.parseLong(sub[0]),
-					Long.parseLong(sub[1]),
-					op,
-					Integer.parseInt(sub[2]),
-					Long.parseLong(sub[4]),
-					sub[5],
-					Integer.parseInt(sub[6]),
-					Integer.parseInt(sub[7]),
-					Integer.parseInt(sub[10]),
-					Integer.parseInt(sub[8]),
-					Integer.parseInt(sub[9]));
-			case INQUIRY: return new Record(
-					Long.parseLong(sub[0]),
-					Long.parseLong(sub[1]),
-					op,
-					Integer.parseInt(sub[2]),
-					Integer.parseInt(sub[5]),
-					Integer.parseInt(sub[6]),
-					Integer.parseInt(sub[7]),
-					Integer.parseInt(sub[4]));
-			case SOLD: return new Record(
-					Long.parseLong(sub[0]),
-					Long.parseLong(sub[1]),
-					op,
-					Integer.parseInt(sub[2]),
-					Integer.parseInt(sub[4]),
-					Integer.parseInt(sub[5]),
-					Integer.parseInt(sub[6]));
-			case ERROR: return new Record(
-					Long.parseLong(sub[0]),
-					Long.parseLong(sub[1]),
-					op,
-					Integer.parseInt(sub[2]));
-			default: return null;
-		}
-	}
-
-	static public boolean overlapped(Record r1, Record r2) {
-		if ((r2.preTime - r1.postTime) * (r2.postTime - r1.preTime) < 0) {
-			if (r1.opcode != Opcode.ERROR && r2.opcode != Opcode.ERROR) {
-				return r1.route == r2.route
-						&& ((r2.departure - r1.arrival) * (r2.arrival - r1.departure)) < 0;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
-
-	static public boolean interleave(Record r1, Record r2) {
-		if (r1.opcode != Opcode.ERROR && r2.opcode != Opcode.ERROR) {
-			return r1.route == r2.route
-					&& ((r2.departure - r1.arrival) * (r2.arrival - r1.departure)) < 0;
-		} else {
-			return false;
-		}
-	}
-
-	public String toString() {
-		switch (opcode) {
-			case BUY: return preTime + " " + postTime + " " +
-					threadId + " " +
-					"TicketBought" + " " +
-					ticketId + " " +
-					name + " " +
-					route + " " +
-					coach  + " " +
-					departure + " " +
-					arrival + " " +
-					seat;
-			case REFUND: return preTime + " " + postTime + " " +
-					threadId + " " +
-					"TicketRefund" + " " +
-					ticketId + " " +
-					name + " " +
-					route + " " +
-					coach  + " " +
-					departure + " " +
-					arrival + " " +
-					seat;
-			case INQUIRY: return preTime + " " + postTime + " " +
-					threadId + " " +
-					"RemainTicket" + " " +
-					left + " " +
-					route+ " " +
-					departure+ " " +
-					arrival;
-			case SOLD: return preTime + " " + postTime + " " +
-					threadId + " " +
-					"TicketSoldOut" + " " +
-					route + " " +
-					departure+ " " +
-					arrival;
-			case ERROR: return preTime + " " + postTime + " " +
-					threadId + " " +
-					"ErrOfRefund";
-			default: return null;
-		}
-	}
-
-	public Ticket toTicket() {
-		Ticket ticket = new Ticket();
-		ticket.tid = ticketId;
-		ticket.passenger = name;
-		ticket.route = route;
-		ticket.coach = coach;
-		ticket.seat = seat;
-		ticket.departure = departure;
-		ticket.arrival = arrival;
-		return ticket;
-	}
-}
-
 //* // with debug info
 class Debugger {
 	// These params are configured manually
 	// true: need to test the performance
-	public static final boolean EnablePerformanceTest = true;
+	public static final boolean EnablePerformanceTest = false;
 
 	// true: need to verify correctness of linearizability
-	private static final boolean NeedLinearizabilityVerification = false;
+	private static final boolean NeedLinearizabilityVerification = true;
 	public static final boolean EnableLinearizabilityVerification // configured automatically
 			= !EnablePerformanceTest & NeedLinearizabilityVerification;
 	// if performance test was enabled, can not verify linearizability
 	// due to the cost of recording dbg info for verification
 
 	// true: if you want to store dbg info at local, turn on it
-	public static final boolean EnableStorage = false;
+	public static final boolean EnableStorage = true;
 	// dbg info would save to /dump/caseNrepeatM.txt
-	// where N represents the Nth case described in test.txt
+	// where N represents the Nth case described in config.txt
 	// M represents the Mth repeating test of case N
 
 	// true: if you want to show the trace on console
@@ -262,26 +56,34 @@ class Debugger {
 	public static final boolean NeedDbg
 			= NeedLinearizabilityVerification | EnableStorage | EnableConsolePrint;
 
-	public static final boolean IsDebugMode = true;
-
-	private final List<String> info;
+	private Vector<String> trace;
 	public Debugger() {
-		info = new ArrayList<>();
+		trace = new Vector<>();
 	}
+
+	static public Verifier verifier = new Verifier();
 
 	public void add(String rec) {
 		// add each dbg info exclusively
-		synchronized (info) {
-			info.add(rec);
+		synchronized (trace) {
+			trace.add(rec);
 		}
 	}
 
 	public String get(int index) {
-		return info.get(index);
+		return trace.get(index);
+	}
+
+	public Vector<String> get() {
+		return trace;
 	}
 
 	public int size() {
-		return info.size();
+		return trace.size();
+	}
+
+	public void reset() {
+		trace = new Vector<>();
 	}
 
 	public void dumpLocal(int c, int r) {
@@ -291,9 +93,28 @@ class Debugger {
 			File dumpfile = new File("dump/case" + c + "repeat" + r + ".txt");
 			try {
 				BufferedWriter writer = new BufferedWriter(new FileWriter(dumpfile));
-				int total = info.size();
-				for (int i = 0; i < total; ++i) {
-					writer.write(info.get(i));
+				for (String s : trace) {
+					writer.write(s);
+					writer.newLine();
+				}
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void dumpLinearized(int c, int r, Vector<Execution> linearized) {
+		File dir = new File("dump/linearized/");
+		try {
+			dir.mkdir();
+			File dumpfile = new File("dump/linearized/case" + c + "repeat" + r + ".txt");
+			try {
+				BufferedWriter writer = new BufferedWriter(new FileWriter(dumpfile));
+				for (Execution execution : linearized) {
+					writer.write(execution.toString());
 					writer.newLine();
 				}
 				writer.close();
@@ -306,224 +127,15 @@ class Debugger {
 	}
 
 	public void dumpConsole() {
-		for (String each : info) {
+		for (String each : trace) {
 			System.out.println(each);
 		}
 	}
-
-	private static Set<Record> take(TicketingDS tds, List<Record> trace, Set<Integer> threads, Record latest, List<Record> passed) {
-		Set<Record> res = new HashSet<>();
-		if (latest != null && !threads.contains(latest.threadId)) {
-			passed.add(latest);
-			res.addAll(emit(tds, trace, trace.indexOf(latest), passed));
-			passed.remove(latest);
-		}
-
-		int pos = 0;
-		for (Record each : trace) {
-			assert (each != null);
-			if (threads.isEmpty()) {
-				break;
-			} else if (threads.contains(each.threadId)) {
-				if (latest != null) {
-					// can not emit before latest
-					if (each.preTime < latest.postTime) {
-						passed.add(each);
-						res.addAll(emit(tds, trace, pos, passed));
-						passed.remove(each);
-					} else {
-						break;
-					}
-				} else {
-					passed.add(each);
-					res.addAll(emit(tds, trace, pos, passed));
-					passed.remove(each);
-				}
-				threads.remove(each.threadId);
-			}
-			pos++;
-		}
-		return res;
-	}
-
-	private static Set<Record> emit(TicketingDS tds, List<Record> trace, int start, List<Record> passed) {
-		// figure out all possible record at the next point
-		Record pseudo = trace.get(start);
-		if (pseudo != null) {
-			passed.add(pseudo);
-			// find one possible record can emit before pseudo
-			List<Record> refunds = new ArrayList<>();
-			List<Record> boughts = new ArrayList<>();
-			// other threads that may emit before which contains pseudo
-			Set<Integer> threads = new HashSet<>();
-			// the first event un-overlapped with pseudo
-			Record latest = null;
-			long minPost = Long.MAX_VALUE;
-			for (Record each : trace) {
-				// may overlapped with pseudo
-				if (each.preTime < pseudo.postTime && each.preTime < passed.get(0).postTime) {
-					// do not exceed the upper bound
-					// thread's sequence has been handled in passed list
-					if (passed.stream().anyMatch(record -> record.threadId == each.threadId)) continue;
-
-					if (Record.overlapped(each, pseudo)) {
-						threads.add(each.threadId);
-						switch (each.opcode) {
-							case BUY: boughts.add(each); break;
-							case REFUND: refunds.add(each); break;
-							default: break;
-						}
-					} else if (each.postTime < minPost) {
-						minPost = each.postTime;
-						latest = each;
-					}
-				} else {
-					break;
-				}
-			}
-
-			Set<Record> pres = new HashSet<>();
-			switch (pseudo.opcode) {
-				case BUY: {
-					int left = tds.inquiry(pseudo.route, pseudo.departure, pseudo.arrival);
-					if (left == 0) {
-						// must refund before
-						Set<Integer> thread = new HashSet<>();
-						refunds.forEach(refund -> thread.add(refund.threadId));
-						pres.addAll(take(tds, trace, thread, latest, passed));
-					} else {
-						pres.add(pseudo);
-						pres.addAll(take(tds, trace, threads, latest, passed));
-					}
-				} break;
-				case REFUND: {
-					pres.add(pseudo);
-					pres.addAll(take(tds, trace, threads, latest, passed));
-				} break;
-				case INQUIRY: {
-					int left = tds.inquiry(pseudo.route, pseudo.departure, pseudo.arrival);
-					if ((left > pseudo.left && pseudo.left + boughts.size() >= left)
-							|| (left < pseudo.left && left + refunds.size() >= pseudo.left)) {
-						// must buy or refund some tickets before
-						pres.addAll(take(tds, trace, threads, latest, passed));
-					} else if (left == pseudo.left) {
-						pres.add(pseudo);
-					}
-				} break;
-				case SOLD: {
-					int left = tds.inquiry(pseudo.route, pseudo.departure, pseudo.arrival);
-					if (left > 0 && boughts.size() >= left) {
-						// must buy some tickets before
-						Set<Integer> thread = new HashSet<>();
-						boughts.forEach(bought -> thread.add(bought.threadId));
-						pres.addAll(take(tds, trace, thread, latest, passed));
-					} else if (left == 0) {
-						pres.add(pseudo);
-					}
-				} break;
-				default: break;
-			}
-			return pres;
-		}
-		return null;
-	}
-
-	private static boolean march(TicketingDS tds, List<Record> trace, Vector<Record> linearized, Record step) {
-		int index = trace.indexOf(step);
-		trace.remove(index);
-		linearized.add(step);
-
-		if (verify(tds, trace, linearized)) {
-			return true;
-		}
-
-		trace.add(index, step);
-		linearized.remove(step);
-		return false;
-	}
-
-	private static boolean verify(TicketingDS tds, List<Record> trace, Vector<Record> linearized) {
-		if (trace.isEmpty()) {
-			return true;
-		} else {
-			Set<Record> next = emit(tds, trace, 0, new ArrayList<>());
-			assert next != null;
-			for (Record step : next) {
-				switch (step.opcode) {
-					case BUY: {
-						if (tds.buy(step.toTicket()) != null) {
-							if (march(tds, trace, linearized, step)) {
-								return true;
-							} else {
-								tds.refund(step.toTicket());
-							}
-						}
-					} break;
-					case REFUND: {
-						if (tds.refund(step.toTicket())) {
-							if (march(tds, trace, linearized, step)) {
-								return true;
-							} else {
-								tds.buy(step.toTicket());
-							}
-						}
-					} break;
-					case INQUIRY: {
-						if (tds.inquiry(step.route, step.departure, step.arrival) == step.left
-								&& march(tds, trace, linearized, step)) {
-							return true;
-						}
-					} break;
-					case SOLD: {
-						if (tds.inquiry(step.route, step.departure, step.arrival) == 0
-								&& march(tds, trace, linearized, step)) {
-							return true;
-						}
-					} break;
-					default: break;
-				}
-			}
-		}
-		return false;
-	}
-
-	public boolean verifyLinearizability(int routenum, int coachnum, int seatnum, int stationnum, int threadnum) {
-		TicketingDS tds = new TicketingDS(
-				routenum,
-				coachnum,
-				seatnum,
-				stationnum,
-				threadnum
-		);
-
-		info.sort((o1, o2) -> {
-			String[] sub1 = o1.split(" ");
-			String[] sub2 = o2.split(" ");
-			long pre1 = Long.parseLong(sub1[0]);
-			long post1 = Long.parseLong(sub1[1]);
-			long pre2 = Long.parseLong(sub2[0]);
-			long post2 = Long.parseLong(sub2[1]);
-			if (pre1 < pre2 || (pre1 == pre2 && post1 < post2)) {
-				return -1;
-			} else if (pre1 == pre2 || post1 == post2) {
-				return 0;
-			} else {
-				return 1;
-			}
-		});
-
-		List<Record> trace = new ArrayList<>();
-		for (String s : info) {
-			trace.add(Record.build(s));
-		}
-		Vector<Record> linearized = new Vector<>();
-		return verify(tds, trace, linearized);
-	}
 }
 
-class Task implements Runnable {
-	private final static int retpc = 10; // return ticket operation is 10% percent
-	private final static int buypc = 30; // buy ticket operation is 20% percent
+class TestTask implements Runnable {
+	private final static int retpc = 20; // return ticket operation is 10% percent
+	private final static int buypc = 50; // buy ticket operation is 20% percent
 	private final static int inqpc = 100; //inquiry ticket operation is 70% percent
 
 	private final long startTime;
@@ -536,6 +148,10 @@ class Task implements Runnable {
 
 	public static Debugger dbg = new Debugger();
 
+	public static void reset() {
+		dbg.reset();
+	}
+
 	/**
 	 * build passenger's name randomly
 	 * @return name
@@ -546,7 +162,7 @@ class Task implements Runnable {
 		return "passenger" + uid;
 	}
 
-	public Task(long start, TicketingDS ins, int test, int route, int coach, int seat, int station) {
+	public TestTask(long start, TicketingDS ins, int test, int route, int coach, int seat, int station) {
 		startTime = start;
 		tds = ins;
 		testnum = test;
@@ -745,8 +361,31 @@ public class Test {
 		int casenum = testnums.size();
 		for (int c = 0; c < casenum; ++c) {
 			costs.add(new ArrayList<>());
+
+			if (Debugger.EnableLinearizabilityVerification) {
+				System.out.println("statistics for"
+						+ " testnum=" + testnums.get(c)
+						+ " eachnum = " + testnums.get(c) / threadnums.get(c)
+						+ " threadnum=" + threadnums.get(c)
+						+ " routenum=" + routenums.get(c)
+						+ " coachnum=" + coachnums.get(c)
+						+ " seatnum=" + seatnums.get(c)
+						+ " stationnum=" + stationnums.get(c)
+						+ " repeat=" + repeat);
+				Debugger.verifier.importConfig(
+						routenums.get(c),
+						coachnums.get(c),
+						seatnums.get(c),
+						stationnums.get(c)
+				);
+			}
+
 			for (int r = 0; r < repeat; ++r) {
+				TestTask.dbg.reset();
 				MyThreadId.reset(); // set the thread id counting from 0
+				if (Debugger.EnableLinearizabilityVerification) {
+					Debugger.verifier.reset();
+				}
 
 				Thread[] threads = new Thread[threadnums.get(c)];
 				TicketingDS tds = new TicketingDS(
@@ -758,9 +397,9 @@ public class Test {
 				);
 
 				long startTime = System.nanoTime();
-				Task[] tasks = new Task[threadnums.get(c)];
+				TestTask[] tasks = new TestTask[threadnums.get(c)];
 				for (int t = 0; t < threadnums.get(c); ++t) {
-					tasks[t] = new Task(startTime,
+					tasks[t] = new TestTask(startTime,
 							tds,
 							testnums.get(c) / threadnums.get(c),
 							routenums.get(c),
@@ -781,24 +420,40 @@ public class Test {
 				costs.get(c).add(System.nanoTime() - startTime);
 
 				if (Debugger.EnableStorage) {
-					Task.dbg.dumpLocal(c, r);
+					TestTask.dbg.dumpLocal(c, r);
 				}
 
 				if (Debugger.EnableConsolePrint) {
-					Task.dbg.dumpConsole();
+					TestTask.dbg.dumpConsole();
 				}
 
 				if (Debugger.EnableLinearizabilityVerification) {
-					if (Task.dbg.verifyLinearizability(
-							routenums.get(c),
-							coachnums.get(c),
-							seatnums.get(c),
-							stationnums.get(c),
-							threadnums.get(c)
-					)) {
-						System.out.println("Verification Passed");
-					} else {
-						System.out.println("Verification Failed");
+					Debugger.verifier.importTrace(TestTask.dbg.get());
+
+					ExecutorService executor = Executors.newCachedThreadPool();
+					VerifyTask task = new VerifyTask(Debugger.verifier);
+
+					startTime = System.nanoTime();
+					Future<Vector<Execution>> future = executor.submit(task);
+					try {
+						Vector<Execution> linearized = future.get(60, TimeUnit.SECONDS);
+						if (linearized != null) {
+							System.out.println("Verification Passed " +
+									(System.nanoTime() - startTime) / 1000 + "us");
+							if (Debugger.EnableStorage) {
+								TestTask.dbg.dumpLinearized(c, r, linearized);
+							}
+						} else {
+							System.out.println("Verification Failed " +
+									(System.nanoTime() - startTime) / 1000 + "us");
+						}
+					} catch (InterruptedException | ExecutionException e) {
+						e.printStackTrace();
+					} catch (TimeoutException e) {
+						Debugger.verifier.stop();
+						System.out.println("Verification Time Limit Exceed 60s");
+					} finally {
+						executor.shutdownNow();
 					}
 				}
 			}
@@ -827,4 +482,3 @@ public class Test {
 		}
 	}
 }
-//*/

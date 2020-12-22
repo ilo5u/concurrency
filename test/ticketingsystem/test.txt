@@ -2,4 +2,5 @@ repeat=11
 testnum=1000 threadnum=1 routenum=3 coachnum=3 seatnum=3 stationnum=3
 testnum=1000 threadnum=4 routenum=3 coachnum=3 seatnum=3 stationnum=3
 testnum=1000 threadnum=8 routenum=3 coachnum=3 seatnum=3 stationnum=3
+testnum=1000 threadnum=16 routenum=3 coachnum=3 seatnum=3 stationnum=3
 testnum=1000 threadnum=32 routenum=3 coachnum=3 seatnum=3 stationnum=3

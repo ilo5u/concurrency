@@ -16,6 +16,9 @@ public class Verifier {
     }
 
     private Set<Execution> take(LinearizableTicketingDS tds, Set<Integer> threads, Execution isolate, Set<Integer> visited) {
+        if (timeout.get()) {
+            return new HashSet<>();
+        }
         Set<Execution> res = new HashSet<>();
         List<Execution> temp = new ArrayList<>();
         if (isolate != null) {
@@ -32,16 +35,7 @@ public class Verifier {
             }
         }
         // sort temp by ascending post-time and ascending pre-time
-        temp.sort((e1, e2) -> {
-            if (e1.postTime < e2.postTime
-                    || (e1.postTime == e2.postTime && e1.preTime < e2.preTime)) {
-                return -1;
-            } else if (e1.preTime == e2.preTime && e1.postTime == e2.postTime) {
-                return 0;
-            } else {
-                return 1;
-            }
-        });
+        sortByAscendingPost(temp);
         if (temp.size() > 0) {
             Execution first = temp.get(0);
             for (Execution each : temp) {
@@ -57,6 +51,9 @@ public class Verifier {
     }
 
     private Set<Execution> emit(LinearizableTicketingDS tds, int position, Set<Integer> visited, Execution isolate) {
+        if (timeout.get()) {
+            return new HashSet<>();
+        }
         // figure out all possible record at the next point
         Execution beginner = trace.get(position);
         visited.add(beginner.threadId);
@@ -180,16 +177,7 @@ public class Verifier {
             Set<Execution> next = emit(tds, 0, new HashSet<>(), isolate);
             List<Execution> sorted = new ArrayList<>(next);
             // sort by ascending post-time to speed up finding the legal path
-            sorted.sort((e1, e2) -> {
-                if (e1.postTime < e2.preTime
-                        || (e1.postTime == e2.postTime && e1.preTime < e2.preTime)) {
-                    return -1;
-                } else if (e1.preTime == e2.preTime && e1.postTime == e2.postTime) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            });
+            sortByAscendingPost(sorted);
             for (Execution step : sorted) {
                 switch (step.opcode) {
                     case BUY: {
@@ -224,9 +212,25 @@ public class Verifier {
                     } break;
                     default: break;
                 }
+                if (timeout.get()) {
+                    return false;
+                }
             }
         }
         return false;
+    }
+
+    private void sortByAscendingPost(List<Execution> sorted) {
+        sorted.sort((e1, e2) -> {
+            if (e1.postTime < e2.postTime
+                    || (e1.postTime == e2.postTime && e1.preTime < e2.preTime)) {
+                return -1;
+            } else if (e1.preTime == e2.preTime && e1.postTime == e2.postTime) {
+                return 0;
+            } else {
+                return 1;
+            }
+        });
     }
 
     public Vector<Execution> verify() {

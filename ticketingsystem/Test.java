@@ -452,6 +452,10 @@ public class Test {
 					} catch (TimeoutException e) {
 						Debugger.verifier.stop();
 						System.out.println("Verification Time Limit Exceed 60s");
+						while (!task.finished.get()) {
+							System.out.println("waiting ...");
+							Thread.sleep(200);
+						}
 					} finally {
 						executor.shutdownNow();
 					}

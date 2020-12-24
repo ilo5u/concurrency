@@ -1,0 +1,97 @@
+statistics for testnum=1280000 eachnum = 1280000 threadnum=1 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 2199ms
+repeat1: 2049ms
+repeat2: 2078ms
+repeat3: 2028ms
+repeat4: 2198ms
+repeat5: 2095ms
+repeat6: 2099ms
+repeat7: 2201ms
+repeat8: 2009ms
+repeat9: 2157ms
+repeat10: 2072ms
+average: 2107ms
+
+statistics for testnum=1280000 eachnum = 320000 threadnum=4 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 1420ms
+repeat1: 1184ms
+repeat2: 1316ms
+repeat3: 1184ms
+repeat4: 1255ms
+repeat5: 1091ms
+repeat6: 1124ms
+repeat7: 1057ms
+repeat8: 1079ms
+repeat9: 1109ms
+repeat10: 1182ms
+average: 1177ms
+
+statistics for testnum=1280000 eachnum = 160000 threadnum=8 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 849ms
+repeat1: 964ms
+repeat2: 1022ms
+repeat3: 708ms
+repeat4: 738ms
+repeat5: 906ms
+repeat6: 864ms
+repeat7: 899ms
+repeat8: 948ms
+repeat9: 965ms
+repeat10: 735ms
+average: 866ms
+
+statistics for testnum=1280000 eachnum = 80000 threadnum=16 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 720ms
+repeat1: 757ms
+repeat2: 861ms
+repeat3: 905ms
+repeat4: 795ms
+repeat5: 918ms
+repeat6: 854ms
+repeat7: 697ms
+repeat8: 691ms
+repeat9: 903ms
+repeat10: 921ms
+average: 816ms
+
+statistics for testnum=1280000 eachnum = 40000 threadnum=32 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 786ms
+repeat1: 730ms
+repeat2: 686ms
+repeat3: 651ms
+repeat4: 669ms
+repeat5: 689ms
+repeat6: 541ms
+repeat7: 711ms
+repeat8: 803ms
+repeat9: 748ms
+repeat10: 640ms
+average: 692ms
+
+statistics for testnum=1280000 eachnum = 20000 threadnum=64 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 719ms
+repeat1: 691ms
+repeat2: 883ms
+repeat3: 746ms
+repeat4: 802ms
+repeat5: 865ms
+repeat6: 1077ms
+repeat7: 859ms
+repeat8: 887ms
+repeat9: 815ms
+repeat10: 659ms
+average: 811ms
+
+statistics for testnum=1280000 eachnum = 10000 threadnum=128 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 943ms
+repeat1: 1071ms
+repeat2: 924ms
+repeat3: 967ms
+repeat4: 958ms
+repeat5: 965ms
+repeat6: 838ms
+repeat7: 944ms
+repeat8: 1099ms
+repeat9: 842ms
+repeat10: 938ms
+average: 951ms

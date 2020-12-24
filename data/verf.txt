@@ -1,0 +1,271 @@
+statistics for testnum=1000 eachnum = 1000 threadnum=1 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 14326us
+Verification Passed 2883us
+Verification Passed 1547us
+Verification Passed 2832us
+Verification Passed 1582us
+Verification Passed 1393us
+Verification Passed 1377us
+Verification Passed 1619us
+Verification Passed 1318us
+Verification Passed 1289us
+Verification Passed 1279us
+statistics for testnum=1000 eachnum = 250 threadnum=4 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 2079us
+Verification Passed 5935us
+Verification Passed 1556us
+Verification Passed 2094us
+Verification Passed 3637us
+Verification Passed 1578us
+Verification Passed 1768us
+Verification Passed 1894us
+Verification Passed 2013us
+Verification Passed 2010us
+Verification Passed 1272us
+statistics for testnum=1000 eachnum = 125 threadnum=8 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 1563us
+Verification Passed 1849us
+Verification Passed 9550us
+Verification Passed 3105us
+Verification Passed 1734us
+Verification Passed 2122us
+Verification Passed 2095us
+Verification Passed 1766us
+Verification Passed 1512us
+Verification Passed 2745us
+Verification Passed 1837us
+statistics for testnum=1000 eachnum = 31 threadnum=32 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 1232us
+Verification Passed 1079us
+Verification Passed 1167us
+Verification Passed 1193us
+Verification Passed 1111us
+Verification Passed 941us
+Verification Passed 1263us
+Verification Passed 1477us
+Verification Passed 933us
+Verification Passed 982us
+Verification Passed 1008us
+
+statistics for testnum=1000 eachnum = 1000 threadnum=1 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 11399us
+Verification Passed 3851us
+Verification Passed 2510us
+Verification Passed 2376us
+Verification Passed 2160us
+Verification Passed 1629us
+Verification Passed 1483us
+Verification Passed 1407us
+Verification Passed 1614us
+Verification Passed 2016us
+Verification Passed 1402us
+statistics for testnum=1000 eachnum = 250 threadnum=4 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 4439us
+Verification Passed 2684us
+Verification Passed 2817us
+Verification Passed 3674us
+Verification Passed 2397us
+Verification Passed 2765us
+Verification Time Limit Exceed 60s
+Verification Passed 1998us
+Verification Passed 1960us
+Verification Passed 1268us
+Verification Passed 1888us
+statistics for testnum=1000 eachnum = 125 threadnum=8 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 1631us
+Verification Passed 1328us
+Verification Passed 1526us
+Verification Passed 1791us
+Verification Passed 1223us
+Verification Passed 5324us
+Verification Passed 1006us
+Verification Passed 940us
+Verification Passed 992us
+Verification Passed 1034us
+Verification Passed 902us
+statistics for testnum=1000 eachnum = 31 threadnum=32 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 705us
+Verification Passed 607us
+Verification Passed 664us
+Verification Passed 643us
+Verification Passed 635us
+Verification Passed 574us
+Verification Passed 613us
+Verification Passed 687us
+Verification Passed 3836us
+Verification Passed 663us
+Verification Passed 564us
+
+statistics for testnum=1000 eachnum = 1000 threadnum=1 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 11057us
+Verification Passed 2606us
+Verification Passed 1867us
+Verification Passed 1680us
+Verification Passed 2132us
+Verification Passed 1387us
+Verification Passed 1384us
+Verification Passed 1309us
+Verification Passed 1319us
+Verification Passed 1325us
+Verification Passed 1513us
+statistics for testnum=1000 eachnum = 250 threadnum=4 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 5572us
+Verification Time Limit Exceed 60s
+Verification Passed 1897us
+Verification Passed 1323us
+Verification Passed 1411us
+Verification Passed 1474us
+Verification Passed 2786us
+Verification Passed 2565us
+Verification Passed 1627us
+Verification Passed 1458us
+Verification Passed 1279us
+statistics for testnum=1000 eachnum = 125 threadnum=8 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 1429us
+Verification Passed 1145us
+Verification Passed 954us
+Verification Passed 1062us
+Verification Passed 1072us
+Verification Passed 1200us
+Verification Passed 990us
+Verification Passed 1047us
+Verification Passed 1022us
+Verification Passed 837us
+Verification Passed 1110us
+statistics for testnum=1000 eachnum = 31 threadnum=32 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 590us
+Verification Passed 624us
+Verification Passed 655us
+Verification Passed 582us
+Verification Passed 706us
+Verification Passed 563us
+Verification Passed 555us
+Verification Passed 609us
+Verification Passed 511us
+Verification Passed 480us
+Verification Passed 482us
+
+statistics for testnum=1000 eachnum = 1000 threadnum=1 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 11917us
+Verification Passed 3666us
+Verification Passed 2103us
+Verification Passed 2134us
+Verification Passed 1950us
+Verification Passed 1411us
+Verification Passed 1319us
+Verification Passed 1905us
+Verification Passed 1257us
+Verification Passed 1268us
+Verification Passed 2074us
+statistics for testnum=1000 eachnum = 250 threadnum=4 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 6762us
+Verification Passed 2727us
+Verification Passed 3206us
+Verification Passed 2943us
+Verification Passed 2447us
+Verification Time Limit Exceed 60s
+Verification Passed 2408us
+Verification Passed 1597us
+Verification Passed 1208us
+Verification Passed 1333us
+Verification Passed 1354us
+statistics for testnum=1000 eachnum = 125 threadnum=8 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 1769us
+Verification Passed 3176us
+Verification Passed 61640us
+Verification Passed 853us
+Verification Passed 1726us
+Verification Passed 1649us
+Verification Passed 860us
+Verification Passed 1186us
+Verification Passed 686us
+Verification Passed 728us
+Verification Passed 835us
+statistics for testnum=1000 eachnum = 62 threadnum=16 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 1441us
+Verification Passed 609us
+Verification Passed 661us
+Verification Passed 639us
+Verification Passed 590us
+Verification Passed 2114us
+Verification Passed 572us
+Verification Passed 614us
+Verification Passed 563us
+Verification Passed 590us
+Verification Passed 566us
+statistics for testnum=1000 eachnum = 31 threadnum=32 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 513us
+Verification Passed 550us
+Verification Passed 490us
+Verification Passed 535us
+Verification Passed 480us
+Verification Passed 494us
+Verification Passed 511us
+Verification Passed 471us
+Verification Passed 471us
+Verification Passed 485us
+Verification Passed 524us
+
+
+
+
+statistics for testnum=1000 eachnum = 1000 threadnum=1 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 15094us
+Verification Passed 2575us
+Verification Passed 1783us
+Verification Passed 1541us
+Verification Passed 2129us
+Verification Passed 1849us
+Verification Passed 1953us
+Verification Passed 1405us
+Verification Passed 1414us
+Verification Passed 1352us
+Verification Passed 1334us
+statistics for testnum=1000 eachnum = 250 threadnum=4 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 19119us
+Verification Passed 4872us
+Verification Passed 5113us
+Verification Passed 3252us
+Verification Passed 1430us
+Verification Passed 11515us
+Verification Passed 2522us
+Verification Passed 1845us
+Verification Passed 4435us
+Verification Passed 2988us
+Verification Passed 2589us
+statistics for testnum=1000 eachnum = 125 threadnum=8 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 48753us
+Verification Passed 5221023us
+Verification Passed 3729us
+Verification Passed 5319us
+Verification Passed 12761us
+Verification Passed 2812us
+Verification Passed 1527us
+Verification Passed 1713us
+Verification Passed 1405us
+Verification Passed 1389us
+Verification Passed 1216us
+statistics for testnum=1000 eachnum = 62 threadnum=16 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Passed 44071us
+Verification Passed 12292938us
+Verification Time Limit Exceed 60s
+Verification Passed 757400us
+Verification Passed 4814us
+Verification Passed 6322us
+Verification Passed 16468us
+Verification Passed 29663us
+Verification Passed 2706us
+Verification Passed 6384us
+Verification Passed 1466us
+statistics for testnum=1000 eachnum = 31 threadnum=32 routenum=3 coachnum=3 seatnum=3 stationnum=3 repeat=11
+Verification Time Limit Exceed 60s
+Verification Time Limit Exceed 60s
+Verification Time Limit Exceed 60s
+Verification Passed 8316us
+Verification Passed 1864us
+Verification Passed 1883us
+Verification Passed 2144095us
+Verification Passed 203467us
+Verification Passed 3883263us
+Verification Passed 1562us
+Verification Passed 2151us

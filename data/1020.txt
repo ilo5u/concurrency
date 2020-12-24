@@ -1,0 +1,97 @@
+statistics for testnum=1280000 threadnum=1 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 1372ms
+repeat1: 1273ms
+repeat2: 1264ms
+repeat3: 1252ms
+repeat4: 1284ms
+repeat5: 1222ms
+repeat6: 1241ms
+repeat7: 1259ms
+repeat8: 1357ms
+repeat9: 1227ms
+repeat10: 1299ms
+average: 1277ms
+
+statistics for testnum=1280000 threadnum=4 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 921ms
+repeat1: 866ms
+repeat2: 874ms
+repeat3: 786ms
+repeat4: 848ms
+repeat5: 842ms
+repeat6: 734ms
+repeat7: 786ms
+repeat8: 724ms
+repeat9: 761ms
+repeat10: 788ms
+average: 810ms
+
+statistics for testnum=1280000 threadnum=8 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 732ms
+repeat1: 763ms
+repeat2: 682ms
+repeat3: 606ms
+repeat4: 664ms
+repeat5: 768ms
+repeat6: 769ms
+repeat7: 771ms
+repeat8: 710ms
+repeat9: 821ms
+repeat10: 637ms
+average: 717ms
+
+statistics for testnum=1280000 threadnum=16 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 896ms
+repeat1: 644ms
+repeat2: 774ms
+repeat3: 796ms
+repeat4: 942ms
+repeat5: 709ms
+repeat6: 824ms
+repeat7: 656ms
+repeat8: 691ms
+repeat9: 694ms
+repeat10: 720ms
+average: 753ms
+
+statistics for testnum=1280000 threadnum=32 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 851ms
+repeat1: 956ms
+repeat2: 797ms
+repeat3: 815ms
+repeat4: 780ms
+repeat5: 721ms
+repeat6: 642ms
+repeat7: 811ms
+repeat8: 723ms
+repeat9: 743ms
+repeat10: 710ms
+average: 773ms
+
+statistics for testnum=1280000 threadnum=64 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 756ms
+repeat1: 621ms
+repeat2: 784ms
+repeat3: 778ms
+repeat4: 716ms
+repeat5: 713ms
+repeat6: 948ms
+repeat7: 722ms
+repeat8: 952ms
+repeat9: 733ms
+repeat10: 845ms
+average: 773ms
+
+statistics for testnum=1280000 threadnum=128 routenum=20 coachnum=10 seatnum=100 stationnum=16 repeat=11
+repeat0: 962ms
+repeat1: 925ms
+repeat2: 901ms
+repeat3: 945ms
+repeat4: 865ms
+repeat5: 1003ms
+repeat6: 963ms
+repeat7: 932ms
+repeat8: 1042ms
+repeat9: 868ms
+repeat10: 1053ms
+average: 949ms

@@ -1,7 +1,6 @@
 *.class
 /META-INF
 dump
-/static
 /out
 *.iml
 *.pdf

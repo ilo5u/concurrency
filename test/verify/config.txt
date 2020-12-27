@@ -1,1 +1,1 @@
-routenum=3 coachnum=3 seatnum=3 stationnum=3
+routenum=2 coachnum=1 seatnum=2 stationnum=3

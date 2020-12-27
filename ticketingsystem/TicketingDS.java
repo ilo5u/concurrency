@@ -51,6 +51,12 @@ public class TicketingDS implements TicketingSystem {
 
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         try {
+            if (passenger == null) return null;
+            if (route <= 0 || route > routemax) return null;
+            if (departure <= 0 || departure > stationmax) return null;
+            if (arrival <= 0 || arrival > stationmax) return null;
+            if (departure >= arrival) return null;
+
             windows.acquire();
             // buy one ticket
             NoAndTicket res = routes[route].acquire(hashTour(departure, arrival), passenger);
@@ -77,6 +83,11 @@ public class TicketingDS implements TicketingSystem {
 
     public int inquiry(int route, int departure, int arrival) {
         try {
+            if (route <= 0 || route > routemax) return -1;
+            if (departure <= 0 || departure > stationmax) return -1;
+            if (arrival <= 0 || arrival > stationmax) return -1;
+            if (departure >= arrival) return -1;
+
             windows.acquire();
             // inquiry amount of the rest tickets
             return routes[route].count(hashTour(departure, arrival));
@@ -90,6 +101,14 @@ public class TicketingDS implements TicketingSystem {
 
     public boolean refundTicket(Ticket ticket) {
         try {
+            if (ticket.passenger == null) return false;
+            if (ticket.route <= 0 || ticket.route > routemax) return false;
+            if (ticket.departure <= 0 || ticket.departure > stationmax) return false;
+            if (ticket.arrival <= 0 || ticket.arrival > stationmax) return false;
+            if (ticket.departure >= ticket.arrival) return false;
+            if (ticket.coach <= 0 || ticket.coach > coachmax) return false;
+            if (ticket.seat <= 0 || ticket.seat > seatmax) return false;
+
             windows.acquire();
             // refund one ticket
             return routes[ticket.route].release(
